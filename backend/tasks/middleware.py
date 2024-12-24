@@ -1,6 +1,7 @@
 import json
-import requests
+
 from django.http import JsonResponse
+import requests
 
 
 class TaskPolicyEnforcementMiddleware:
@@ -29,8 +30,6 @@ class TaskPolicyEnforcementMiddleware:
                 headers={"Content-Type": "application/json", "Accept": "application/json"},
             )
             response_data = response.json()
-            import wdb
-            wdb.set_trace()
             decision = response_data.get("decision")
         except Exception as e:
             return JsonResponse(

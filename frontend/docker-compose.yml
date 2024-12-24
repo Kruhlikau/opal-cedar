@@ -1,0 +1,15 @@
+services:
+  frontend:
+    container_name: frontend
+    build:
+      dockerfile: ../dockerfiles/Dockerfile-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/frontend
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    external: true  # Reference an external network

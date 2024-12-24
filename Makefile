@@ -1,8 +1,9 @@
-# Makefile for managing OPAL and application services
+# Makefile for managing OPAL, application services, and frontend
 
 # Define compose files
-AUTH_COMPOSE_FILE=docker-compose.yml
-APP_COMPOSE_FILE=app/docker-compose.yml
+AUTH_COMPOSE_FILE=authZ/docker-compose.yml
+BACKEND_COMPOSE_FILE=backend/docker-compose.yml
+FRONTEND_COMPOSE_FILE=frontend/docker-compose.yml
 
 # Define common commands
 DOCKER_COMPOSE=docker compose
@@ -10,7 +11,7 @@ UP_CMD=up -d
 DOWN_CMD=down
 BUILD_CMD=build
 LOGS_CMD=logs -f
-NETWORK_NAME=app_network  # Define the network name
+NETWORK_NAME=app_network
 
 # Create the network (if it doesn't exist already)
 create-network:
@@ -33,38 +34,58 @@ build-auth:
 logs-auth:
 	$(DOCKER_COMPOSE) -f $(AUTH_COMPOSE_FILE) $(LOGS_CMD)
 
-# Start the app compose services
-start-app: create-network
-	$(DOCKER_COMPOSE) -f $(APP_COMPOSE_FILE) $(UP_CMD)
+# Start the backend compose services
+start-backend: create-network
+	$(DOCKER_COMPOSE) -f $(BACKEND_COMPOSE_FILE) $(UP_CMD)
 
-# Stop the app compose services
-stop-app:
-	$(DOCKER_COMPOSE) -f $(APP_COMPOSE_FILE) $(DOWN_CMD)
+# Stop the backend compose services
+stop-backend:
+	$(DOCKER_COMPOSE) -f $(BACKEND_COMPOSE_FILE) $(DOWN_CMD)
 
-# Build the app compose services
-build-app:
-	$(DOCKER_COMPOSE) -f $(APP_COMPOSE_FILE) $(BUILD_CMD)
+# Build the backend compose services
+build-backend:
+	$(DOCKER_COMPOSE) -f $(BACKEND_COMPOSE_FILE) $(BUILD_CMD)
 
-# View logs for app compose services
-logs-app:
-	$(DOCKER_COMPOSE) -f $(APP_COMPOSE_FILE) $(LOGS_CMD)
+# View logs for backend compose services
+logs-backend:
+	$(DOCKER_COMPOSE) -f $(BACKEND_COMPOSE_FILE) $(LOGS_CMD)
+
+# Start the frontend compose services
+start-frontend: create-network
+	$(DOCKER_COMPOSE) -f $(FRONTEND_COMPOSE_FILE) $(UP_CMD)
+
+# Stop the frontend compose services
+stop-frontend:
+	$(DOCKER_COMPOSE) -f $(FRONTEND_COMPOSE_FILE) $(DOWN_CMD)
+
+# Build the frontend compose services
+build-frontend:
+	$(DOCKER_COMPOSE) -f $(FRONTEND_COMPOSE_FILE) $(BUILD_CMD)
+
+# View logs for frontend compose services
+logs-frontend:
+	$(DOCKER_COMPOSE) -f $(FRONTEND_COMPOSE_FILE) $(LOGS_CMD)
 
 # Stop all services
 stop-all:
 	@make stop-auth
-	@make stop-app
+	@make stop-backend
+	@make stop-frontend
 
-# Start both auth and app services
+# Start both auth, backend, and frontend services
 start-all: create-network
 	@make start-auth
-	@make start-app
+	@make start-backend
+	@make start-frontend
 
-# Build both auth and app services
+# Build both auth, backend, and frontend services
 build-all:
 	@make build-auth
-	@make build-app
+	@make build-backend
+	@make build-frontend
 
 # View logs for all services
 logs-all:
 	@make logs-auth
-	@make logs-app
+	@make logs-backend
+	@make logs-frontend

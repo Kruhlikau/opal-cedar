@@ -1,0 +1,81 @@
+services:
+  backend:
+    container_name: backend
+    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+    build:
+      dockerfile: ../dockerfiles/Dockerfile-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/backend
+    environment:
+      - PYDEVD_DISABLE_FILE_VALIDATION="1"
+      - PYTHONDONTWRITEBYTECODE="1"
+      - WDB_NO_BROWSER_AUTO_OPEN=True
+      - WDB_SOCKET_SERVER=debugger
+      - WDB_SOCKET_PORT=19840
+      - DB_NAME=todoapp
+      - DB_USER=todo_user
+      - DB_PASSWORD=todo_password
+      - DB_HOST=db
+      - DB_PORT=5432
+    networks:
+      - app_network
+    depends_on:
+      - db
+
+  db:
+    container_name: db
+    image: postgres:13
+    environment:
+      POSTGRES_DB: todoapp
+      POSTGRES_USER: todo_user
+      POSTGRES_PASSWORD: todo_password
+    healthcheck:
+      interval: 60s
+      retries: 4
+      start_interval: 2s
+      start_period: 30s
+      test: [ "CMD", "psql", "-h", "localhost", "-U", "todo_user", "-d", "todoapp", "-c", 'select 1;' ]
+      timeout: 5s
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persistent data volume
+    networks:
+      - app_network
+
+  db-migrations:
+    command: ["python", "manage.py", "migrate" ]
+    container_name: db-migrations
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PYTHONDONTWRITEBYTECODE: 1
+    image: backend-backend:latest
+    init: true
+    networks:
+      - app_network
+    volumes:
+      - .:/backend
+
+  debugger:
+    container_name: debugger
+    platform: linux/x86_64
+    image: shepilovvladislav/wdb
+    ports:
+      - "1985:1984"
+    # HACK https://github.com/Kozea/wdb/issues/136
+    stop_signal: KILL
+    environment:
+      - WDB_NO_BROWSER_AUTO_OPEN=True
+      - WDB_SOCKET_SERVER=debugger
+      - WDB_SOCKET_PORT=19840
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    external: true  # Reference an external network
+
+volumes:
+  postgres_data:
