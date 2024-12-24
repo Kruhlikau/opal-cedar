@@ -1,17 +1,24 @@
-version: "3.8"
 services:
   # A simple nginx server to serve our mock data sources.
   cedar_data_nginx:
-      image: nginx:latest
-      volumes:
-        - "./data:/usr/share/nginx/html:ro"
+    container_name: cedar_data_nginx
+    image: nginx:latest
+    volumes:
+      - "./data:/usr/share/nginx/html:ro"
+    networks:
+      - app_network
+
   # Local git repo to host our policy.
   cedar_retrieval_repository:
-      image: rockstorm/gitweb
-      ports:
-        - "80:80"
-      volumes:
-        - "../:/srv/git:ro"
+    container_name: cedar_retrieval_repository
+    image: rockstorm/gitweb
+    ports:
+      - "80:80"
+    volumes:
+      - "../:/srv/git:ro"
+    networks:
+      - app_network
+
   # When scaling the opal-server to multiple nodes and/or multiple workers, we use
   # a *broadcast* channel to sync between all the instances of opal-server.
   # Under the hood, this channel is implemented by encode/broadcaster (see link below).
@@ -19,12 +26,17 @@ services:
   # The format of the broadcaster URI string (the one we pass to opal server as `OPAL_BROADCAST_URI`) is specified here:
   # https://github.com/encode/broadcaster#available-backends
   broadcast_channel:
+    container_name: broadcast_channel
     image: postgres:alpine
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+    networks:
+      - app_network
+
   opal_server:
+    container_name: opal_server
     # by default we run opal-server from latest official image
     image: permitio/opal-server:latest
     environment:
@@ -56,7 +68,11 @@ services:
       - "7002:7002"
     depends_on:
       - broadcast_channel
+    networks:
+      - app_network
+
   opal_client:
+    container_name: opal_client
     # by default we run opal-client from latest official image
     image: permitio/opal-client-cedar:latest
     environment:
@@ -74,6 +90,12 @@ services:
     command: sh -c "exec ./wait-for.sh opal_server:7002 --timeout=20 -- ./start.sh"
     links:
       - cedar_data_nginx
+    networks:
+      - app_network
 
 volumes:
   opa_backup:
+
+networks:
+  app_network:
+    external: true  # Reference the same external network

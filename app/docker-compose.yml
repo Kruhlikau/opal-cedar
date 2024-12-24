@@ -1,0 +1,36 @@
+services:
+  app:
+    container_name: app
+    build:
+      dockerfile: ../dockerfiles/Dockerfile-app
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      - PYDEVD_DISABLE_FILE_VALIDATION= "1"
+      - PYTHONDONTWRITEBYTECODE= "1"
+      - WDB_NO_BROWSER_AUTO_OPEN=True
+      - WDB_SOCKET_SERVER=debugger
+      - WDB_SOCKET_PORT=19840
+    networks:
+      - app_network
+
+  debugger:
+    container_name: debugger
+    platform: linux/x86_64
+    image: shepilovvladislav/wdb
+    ports:
+      - "1985:1984"
+    # HACK https://github.com/Kozea/wdb/issues/136
+    stop_signal: KILL
+    environment:
+      - WDB_NO_BROWSER_AUTO_OPEN=True
+      - WDB_SOCKET_SERVER=debugger
+      - WDB_SOCKET_PORT=19840
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    external: true  # Reference an external network

@@ -1,0 +1,9 @@
+devtools[pygments]==0.12.2
+wdb==3.3.0
+black==24.3.0
+flake8==7.0.0
+isort==5.13.2
+mypy==1.9.0
+types-pytz==2024.1.0.20240417
+types-python-dateutil==2.9.0.20240316
+types-requests==2.32.0.20240622
