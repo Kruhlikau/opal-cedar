@@ -1,0 +1,74 @@
+{
+  "TodoApp": {
+    "entityTypes": {
+      "Role": {
+        "memberOfTypes": [],
+        "shape": {
+          "type": "Record",
+          "attributes": {
+            "name": { "type": "String" }
+          }
+        }
+      },
+      "User": {
+        "memberOfTypes": [ "Role" ],
+        "shape": {
+          "type": "Record",
+          "attributes": {
+            "username": { "type": "String", "required": true },
+            "role": { "type": "String", "required": true }
+          }
+        }
+      },
+      "Task": {
+        "memberOfTypes": [],
+        "shape": {
+          "type": "Record",
+          "attributes": {
+            "title": { "type": "String", "required": true },
+            "description": { "type": "String", "required": false },
+            "completed": { "type": "Boolean", "required": true },
+            "owner": {
+              "type": "Entity",
+              "name": "User",
+              "required": true
+            }
+          }
+        }
+      }
+    },
+    "actions": {
+      "Post": {
+        "appliesTo": {
+          "principalTypes": [ "User" ],
+          "resourceTypes": [ "Task" ]
+        }
+      },
+      "Put": {
+        "appliesTo": {
+          "principalTypes": [ "User" ],
+          "resourceTypes": [ "Task" ]
+        }
+      },
+      "Get": {
+        "appliesTo": {
+          "principalTypes": [ "User" ],
+          "resourceTypes": [ "Task" ],
+          "context": {
+            "type": "Record",
+            "attributes": {
+              "authenticated": { "type": "Boolean" }
+            }
+          }
+        }
+      },
+      "Delete": {
+        "appliesTo": {
+          "principalTypes": [ "User" ],
+          "resourceTypes": [ "Task" ]
+        }
+      }
+    },
+    "commonTypes": {}
+  }
+}

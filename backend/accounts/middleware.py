@@ -4,19 +4,19 @@ from django.http import JsonResponse
 import requests
 
 
-class TaskPolicyEnforcementMiddleware:
+class PolicyEnforcementMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
         # Extract necessary information from the request
-        user = request.headers.get("user")
+        user = request.user
         method = request.method
         original_url = request.path
 
         # Prepare the authorization payload
         payload = {
-            "principal": f'User::"{user}"',
+            "principal": f'Role::"{user.role}"',
             "action": f'Action::"{method.lower()}"',
             "resource": f"ResourceType::\"{original_url.split('/')[1]}\"",
             "context": self.get_request_body(request),
