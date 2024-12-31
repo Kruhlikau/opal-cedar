@@ -21,16 +21,17 @@ class TaskListCreateView(ListCreateAPIView):
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated]
 
-    def make_auth_request(self, user, method, original_url, context=None):
+    def make_auth_request(self, principal, method, original_url, resource, context=None):
         """
-        Make the authorization request to Cedar.
+        Make the authorization request to Cedar with a specified principal.
         """
         response = requests.post(
             "http://host.docker.internal:8180/v1/is_authorized",
             json={
-                "principal": f'Role::"{user.role}"',
+                "principal": principal,
                 "action": f'Action::"{method.lower()}"',
-                "resource": 'ResourceType::"NewTask"',
+                "resource": f'ResourceType::"{resource}"',
+                "context": context or {},
             },
             headers={"Content-Type": "application/json", "Accept": "application/json"},
         )
@@ -41,6 +42,30 @@ class TaskListCreateView(ListCreateAPIView):
         return result
 
     @sync_entities_with_cedar
+    def get_queryset(self):
+        """
+        Restrict tasks to those allowed by Cedar for the authenticated user.
+        """
+        user = self.request.user
+        queryset = Task.objects.all()
+        allowed_tasks = []
+
+        for task in queryset:
+            try:
+                principal = f'User::"{user.username}"'
+                self.make_auth_request(
+                    principal=principal,
+                    method="GET",
+                    original_url=self.request.build_absolute_uri(),
+                    resource=f"task_{task.id}",
+                )
+                allowed_tasks.append(task)
+            except PermissionDeniedException:
+                pass
+
+        return Task.objects.filter(id__in=[task.id for task in allowed_tasks])
+
+    @sync_entities_with_cedar
     def create(self, request, *args, **kwargs):
         """
         Handles task creation, ensuring authorization before proceeding.
@@ -49,7 +74,9 @@ class TaskListCreateView(ListCreateAPIView):
         method = request.method
         original_url = request.build_absolute_uri()
 
-        self.make_auth_request(user, method, original_url, request.data)
+        # Use Role as principal for create
+        principal = f'Role::"{user.role}"'
+        self.make_auth_request(principal, method, original_url, "NewTask", request.data)
 
         return super().create(request, *args, **kwargs)
 

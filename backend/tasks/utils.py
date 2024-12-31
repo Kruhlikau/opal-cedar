@@ -18,7 +18,7 @@ def sync_entities_with_cedar(func):
         user_entities = [
             {
                 "uid": {"id": f"{user.username}", "type": "User"},
-                "attrs": {},
+                "attrs": {"id": user.id},
                 "parents": [{"id": user.role, "type": "Role"}],
             }
             for user in CustomUser.objects.all()
@@ -32,7 +32,13 @@ def sync_entities_with_cedar(func):
 
         # Task entities (as resources)
         task_entities = [
-            {"uid": {"id": f"task_{task.id}", "type": "ResourceType"}, "attrs": {}, "parents": []}
+            {
+                "uid": {"id": f"task_{task.id}", "type": "ResourceType"},
+                "attrs": {
+                    "owner": task.owner.id
+                },
+                "parents": []
+            }
             for task in Task.objects.all()
         ]
 

@@ -1,9 +1,8 @@
-// Permit users to view tasks they own
-permit (
+permit(
   principal,
-  action == Action::"get",
+  action,
   resource
 )
 when {
-  resource.owner == principal
+  resource.owner == principal.id
 };
