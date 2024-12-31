@@ -4,5 +4,6 @@ permit(
   resource
 )
 when {
+  resource has owner &&
   resource.owner == principal.id
 };

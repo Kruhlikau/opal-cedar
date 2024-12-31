@@ -30,7 +30,7 @@ class TaskListCreateView(ListCreateAPIView):
             json={
                 "principal": principal,
                 "action": f'Action::"{method.lower()}"',
-                "resource": f'ResourceType::"{resource}"',
+                "resource": f'ResourceType::"{resource}"' if resource else None,
                 "context": context or {},
             },
             headers={"Content-Type": "application/json", "Accept": "application/json"},
@@ -76,7 +76,7 @@ class TaskListCreateView(ListCreateAPIView):
 
         # Use Role as principal for create
         principal = f'Role::"{user.role}"'
-        self.make_auth_request(principal, method, original_url, "NewTask", request.data)
+        self.make_auth_request(principal, method, original_url, None, request.data)
 
         return super().create(request, *args, **kwargs)
 
