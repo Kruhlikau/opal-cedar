@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from .models import Task
 from .serializers import TaskSerializer
-from .utils import PermissionDeniedException, make_auth_request, sync_entities_with_cedar
+from .utils import PermissionDeniedException, get_time_of_day, make_auth_request, sync_entities_with_cedar
 
 
 class TaskListCreateView(ListCreateAPIView):
@@ -46,7 +46,13 @@ class TaskListCreateView(ListCreateAPIView):
 
         # Use Role as principal for create
         principal = f'Role::"{user.role}"'
-        make_auth_request(principal, method, original_url, None, request.data)
+        make_auth_request(
+            principal=principal,
+            method=method,
+            original_url=original_url,
+            resource=None,
+            context={"time_of_day": get_time_of_day()},
+        )
 
         return super().create(request, *args, **kwargs)
 

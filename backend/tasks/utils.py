@@ -1,3 +1,4 @@
+from datetime import datetime
 from functools import wraps
 
 from accounts.models import CustomUser
@@ -41,7 +42,7 @@ def sync_entities_with_cedar(func):
         # Task entities (as resources)
         task_entities = [
             {
-                "uid": {"id": f"task_{task.id}", "type": "ResourceType"},
+                "uid": {"id": f"task_{task.id}", "type": "Task"},
                 "attrs": {"owner": task.owner.id},
                 "parents": [],
             }
@@ -87,7 +88,7 @@ def make_auth_request(principal, method, original_url, resource, context=None):
         json={
             "principal": principal,
             "action": f'Action::"{method.lower()}"',
-            "resource": f'ResourceType::"{resource}"' if resource else None,
+            "resource": f'Task::"{resource}"' if resource else None,
             "context": context or {},
         },
         headers={"Content-Type": "application/json", "Accept": "application/json"},
@@ -97,3 +98,13 @@ def make_auth_request(principal, method, original_url, resource, context=None):
     if result.get("decision") != "Allow":
         raise PermissionDeniedException(detail="Access denied.")
     return result
+
+
+def get_time_of_day():
+    now = datetime.now()
+    if 5 <= now.hour < 12:
+        return "morning"
+    elif 12 <= now.hour < 18:
+        return "afternoon"
+    else:
+        return "evening"
