@@ -1,9 +1,9 @@
 // CBAC
-permit(
+forbid(
   principal,
   action,
   resource
 )
 when {
-  context.time_of_day == "morning"
+  context.time_of_day != "morning"
 };
