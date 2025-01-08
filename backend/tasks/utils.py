@@ -1,15 +1,23 @@
-import requests
 from functools import wraps
+
+from accounts.models import CustomUser
+import requests
 from rest_framework.exceptions import APIException
 
 from .models import Task
-from accounts.models import CustomUser
+
+
+class PermissionDeniedException(APIException):
+    status_code = 403
+    default_detail = "You do not have permission to perform this action."
+    default_code = "permission_denied"
 
 
 def sync_entities_with_cedar(func):
     """
     Decorator to dynamically build and sync entities with the Cedar data store.
     """
+
     def build_entities():
         """
         Dynamically build entities JSON from CustomUser and Task models.
@@ -34,10 +42,8 @@ def sync_entities_with_cedar(func):
         task_entities = [
             {
                 "uid": {"id": f"task_{task.id}", "type": "ResourceType"},
-                "attrs": {
-                    "owner": task.owner.id
-                },
-                "parents": []
+                "attrs": {"owner": task.owner.id},
+                "parents": [],
             }
             for task in Task.objects.all()
         ]
@@ -70,3 +76,24 @@ def sync_entities_with_cedar(func):
         return func(*args, **kwargs)
 
     return wrapper
+
+
+def make_auth_request(principal, method, original_url, resource, context=None):
+    """
+    Make the authorization request to Cedar with a specified principal.
+    """
+    response = requests.post(
+        "http://host.docker.internal:8180/v1/is_authorized",
+        json={
+            "principal": principal,
+            "action": f'Action::"{method.lower()}"',
+            "resource": f'ResourceType::"{resource}"' if resource else None,
+            "context": context or {},
+        },
+        headers={"Content-Type": "application/json", "Accept": "application/json"},
+    )
+    response.raise_for_status()
+    result = response.json()
+    if result.get("decision") != "Allow":
+        raise PermissionDeniedException(detail="Access denied.")
+    return result
