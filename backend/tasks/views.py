@@ -3,7 +3,13 @@ from rest_framework.permissions import IsAuthenticated
 
 from .models import Task
 from .serializers import TaskSerializer
-from .utils import PermissionDeniedException, get_time_of_day, make_auth_request, sync_entities_with_cedar
+from .utils import (
+    PermissionDeniedException,
+    get_time_of_day,
+    is_working_day,
+    make_auth_request,
+    sync_entities_with_cedar,
+)
 
 
 class TaskListCreateView(ListCreateAPIView):
@@ -28,7 +34,7 @@ class TaskListCreateView(ListCreateAPIView):
                     method="GET",
                     original_url=self.request.build_absolute_uri(),
                     resource=f"task_{task.id}",
-                    context={"time_of_day": get_time_of_day()},
+                    context={"time_of_day": get_time_of_day(), "is_working_day": is_working_day()},
                 )
                 allowed_tasks.append(task)
             except PermissionDeniedException:
@@ -52,7 +58,7 @@ class TaskListCreateView(ListCreateAPIView):
             method=method,
             original_url=original_url,
             resource=None,
-            context={"time_of_day": get_time_of_day()},
+            context={"time_of_day": get_time_of_day(), "is_working_day": is_working_day()},
         )
 
         return super().create(request, *args, **kwargs)

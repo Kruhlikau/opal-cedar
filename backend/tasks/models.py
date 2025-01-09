@@ -1,6 +1,7 @@
 from accounts.models import CustomUser
 from django.db import models
 
+
 ACCESS_LEVEL_CHOICES = [("public", "Public"), ("private", "Private")]
 
 
