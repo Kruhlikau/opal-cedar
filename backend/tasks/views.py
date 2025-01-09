@@ -69,3 +69,63 @@ class TaskRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated]
+
+    @sync_and_flash
+    def get_object(self):
+        """
+        Retrieve a task after ensuring the user is authorized to access it.
+        """
+        user = self.request.user
+        task = super().get_object()
+
+        try:
+            principal = f'User::"{user.username}"'
+            make_auth_request(
+                principal=principal,
+                method="GET",
+                original_url=self.request.build_absolute_uri(),
+                resource=f"task_{task.id}",
+                context={"time_of_day": get_time_of_day(), "is_working_day": is_working_day()},
+            )
+        except PermissionDeniedException:
+            raise PermissionDeniedException("You do not have permission to access this task.")
+
+        return task
+
+    @sync_and_flash
+    def update(self, request, *args, **kwargs):
+        """
+        Handles updating a task after ensuring authorization.
+        """
+        user = request.user
+        task = self.get_object()
+
+        principal = f'User::"{user.username}"'
+        make_auth_request(
+            principal=principal,
+            method="PUT",
+            original_url=request.build_absolute_uri(),
+            resource=f"task_{task.id}",
+            context={"time_of_day": get_time_of_day(), "is_working_day": is_working_day()},
+        )
+
+        return super().update(request, *args, **kwargs)
+
+    @sync_and_flash
+    def destroy(self, request, *args, **kwargs):
+        """
+        Handles deleting a task after ensuring authorization.
+        """
+        user = request.user
+        task = self.get_object()
+
+        principal = f'User::"{user.username}"'
+        make_auth_request(
+            principal=principal,
+            method="DELETE",
+            original_url=request.build_absolute_uri(),
+            resource=f"task_{task.id}",
+            context={"time_of_day": get_time_of_day(), "is_working_day": is_working_day()},
+        )
+
+        return super().destroy(request, *args, **kwargs)
