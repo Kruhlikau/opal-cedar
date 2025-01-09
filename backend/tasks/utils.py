@@ -14,6 +14,19 @@ class PermissionDeniedException(APIException):
     default_code = "permission_denied"
 
 
+def flash_data():
+    """
+    Decorator to send an empty payload to clear data on the Cedar data store.
+    """
+    response = requests.put(
+        "http://host.docker.internal:8180/v1/data",
+        json=[],
+        headers={"Content-Type": "application/json"},
+    )
+    if response.status_code != 200:
+        raise APIException(f"Failed to flash data.")
+
+
 def sync_entities_with_cedar(func):
     """
     Decorator to dynamically build and sync entities with the Cedar data store.
@@ -75,6 +88,21 @@ def sync_entities_with_cedar(func):
     def wrapper(*args, **kwargs):
         sync_with_cedar()  # Ensure entities are synced before the function execution
         return func(*args, **kwargs)
+
+    return wrapper
+
+
+def sync_and_flash(func):
+    """
+    Composite decorator that syncs entities with Cedar and flashes data.
+    """
+
+    @sync_entities_with_cedar
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        result = func(*args, **kwargs)
+        flash_data()  # Flash data after the function runs
+        return result
 
     return wrapper
 

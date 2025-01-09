@@ -8,7 +8,7 @@ from .utils import (
     get_time_of_day,
     is_working_day,
     make_auth_request,
-    sync_entities_with_cedar,
+    sync_and_flash,
 )
 
 
@@ -17,7 +17,7 @@ class TaskListCreateView(ListCreateAPIView):
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated]
 
-    @sync_entities_with_cedar
+    @sync_and_flash
     def get_queryset(self):
         """
         Restrict tasks to those allowed by Cedar for the authenticated user.
@@ -42,7 +42,7 @@ class TaskListCreateView(ListCreateAPIView):
 
         return Task.objects.filter(id__in=[task.id for task in allowed_tasks])
 
-    @sync_entities_with_cedar
+    @sync_and_flash
     def create(self, request, *args, **kwargs):
         """
         Handles task creation, ensuring authorization before proceeding.
