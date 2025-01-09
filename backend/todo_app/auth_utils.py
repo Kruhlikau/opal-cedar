@@ -33,7 +33,7 @@ def sync_entities_with_cedar(func):
         user_entities = [
             {
                 "uid": {"id": f"{user.username}", "type": "User"},
-                "attrs": {"id": user.id},
+                "attrs": {"id": user.id, "username": user.username},
                 "parents": [{"id": user.role, "type": "Role"}],
             }
             for user in CustomUser.objects.all()
@@ -49,7 +49,7 @@ def sync_entities_with_cedar(func):
         task_entities = [
             {
                 "uid": {"id": f"task_{task.id}", "type": "Task"},
-                "attrs": {"owner": task.owner.id, "access_level": task.access_level},
+                "attrs": {"owner": task.owner.username, "access_level": task.access_level},
                 "parents": [],
             }
             for task in Task.objects.all()
@@ -58,7 +58,7 @@ def sync_entities_with_cedar(func):
         # Action entities
         action_entities = [
             {"uid": {"id": action, "type": "Action"}, "attrs": {}, "parents": []}
-            for action in ["post", "put", "get", "delete"]
+            for action in ["POST", "PUT", "GET", "DELETE"]
         ]
 
         # Combine all entities
