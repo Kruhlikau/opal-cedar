@@ -28,6 +28,7 @@ class TaskListCreateView(ListCreateAPIView):
                     method="GET",
                     original_url=self.request.build_absolute_uri(),
                     resource=f"task_{task.id}",
+                    context={"time_of_day": get_time_of_day()},
                 )
                 allowed_tasks.append(task)
             except PermissionDeniedException:
