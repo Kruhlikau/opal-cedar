@@ -6,5 +6,5 @@ permit(
 )
 when {
   resource has owner &&
-  resource.owner == principal.id
+  resource.owner == principal.username
 };
