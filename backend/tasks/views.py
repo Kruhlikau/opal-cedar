@@ -9,9 +9,7 @@ from .serializers import TaskSerializer
 
 
 class TaskListCreateView(ListCreateAPIView):
-    queryset = Task.objects.all()
     serializer_class = TaskSerializer
-    permission_classes = [IsAuthenticated]
 
     @sync_and_flash
     def get_queryset(self):
@@ -20,23 +18,25 @@ class TaskListCreateView(ListCreateAPIView):
         """
         user = self.request.user
         queryset = Task.objects.all()
-        allowed_tasks = []
 
-        for task in queryset:
+        task_ids = queryset.values_list("id", flat=True)
+        allowed_ids = []
+
+        for task_id in task_ids:
             try:
                 principal = f'User::"{user.username}"'
                 make_auth_request(
                     principal=principal,
                     method="GET",
                     original_url=self.request.build_absolute_uri(),
-                    resource=f"task_{task.id}",
+                    resource=f"task_{task_id}",
                     context={"time_of_day": get_time_of_day(), "is_working_day": is_working_day()},
                 )
-                allowed_tasks.append(task)
+                allowed_ids.append(task_id)
             except PermissionDeniedException:
-                pass
+                continue
 
-        return Task.objects.filter(id__in=[task.id for task in allowed_tasks])
+        return queryset.filter(id__in=allowed_ids).order_by("-id")
 
     @sync_and_flash
     def create(self, request, *args, **kwargs):
@@ -47,7 +47,6 @@ class TaskListCreateView(ListCreateAPIView):
         method = request.method
         original_url = request.build_absolute_uri()
 
-        # Use Role as principal for create
         principal = f'Role::"{user.role}"'
         make_auth_request(
             principal=principal,
