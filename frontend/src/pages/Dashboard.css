@@ -26,13 +26,19 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+  position: relative;
 }
 
-h1 {
-  text-align: center;
+.user-block {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.username {
+  font-size: 1rem;
+  font-weight: bold;
   color: #333;
-  margin-bottom: 1.5rem;
-  font-size: 1.8rem;
 }
 
 .logout-button {
@@ -52,6 +58,13 @@ h1 {
 
 .logout-button:active {
   transform: scale(0.98);
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
 }
 
 .task-form {
