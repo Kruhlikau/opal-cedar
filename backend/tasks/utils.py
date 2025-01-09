@@ -101,7 +101,7 @@ def sync_and_flash(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         result = func(*args, **kwargs)
-        flash_data()  # Flash data after the function runs
+        flash_data()
         return result
 
     return wrapper
