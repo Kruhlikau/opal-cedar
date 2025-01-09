@@ -108,7 +108,7 @@ def make_auth_request(principal, method, original_url, resource, context=None):
         "http://host.docker.internal:8180/v1/is_authorized",
         json={
             "principal": principal,
-            "action": f'Action::"{method.lower()}"',
+            "action": f'Action::"{method}"',
             "resource": f'Task::"{resource}"' if resource else None,
             "context": context or {},
         },
