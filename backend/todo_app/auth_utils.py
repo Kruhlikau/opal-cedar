@@ -7,6 +7,9 @@ from tasks.models import Task
 from todo_app.exceptions import PermissionDeniedException
 
 
+HTTP_METHODS = ["POST", "PUT", "GET", "DELETE"]
+
+
 def flash_data():
     """
     Decorator to send an empty payload to clear data on the Cedar data store.
@@ -58,7 +61,7 @@ def sync_entities_with_cedar(func):
         # Action entities
         action_entities = [
             {"uid": {"id": action, "type": "Action"}, "attrs": {}, "parents": []}
-            for action in ["POST", "PUT", "GET", "DELETE"]
+            for action in HTTP_METHODS
         ]
 
         # Combine all entities
