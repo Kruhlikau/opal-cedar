@@ -1,15 +1,11 @@
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
+from todo_app.auth_utils import make_auth_request, sync_and_flash
+from todo_app.exceptions import PermissionDeniedException
+from todo_app.utils import get_time_of_day, is_working_day
 
 from .models import Task
 from .serializers import TaskSerializer
-from .utils import (
-    PermissionDeniedException,
-    get_time_of_day,
-    is_working_day,
-    make_auth_request,
-    sync_and_flash,
-)
 
 
 class TaskListCreateView(ListCreateAPIView):

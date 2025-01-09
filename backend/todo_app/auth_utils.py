@@ -1,17 +1,10 @@
-import datetime
 from functools import wraps
 
 from accounts.models import CustomUser
 import requests
 from rest_framework.exceptions import APIException
-
-from .models import Task
-
-
-class PermissionDeniedException(APIException):
-    status_code = 403
-    default_detail = "You do not have permission to perform this action."
-    default_code = "permission_denied"
+from tasks.models import Task
+from todo_app.exceptions import PermissionDeniedException
 
 
 def flash_data():
@@ -126,19 +119,3 @@ def make_auth_request(principal, method, original_url, resource, context=None):
     if result.get("decision") != "Allow":
         raise PermissionDeniedException(detail="Access denied.")
     return result
-
-
-def get_time_of_day():
-    now = datetime.datetime.now()
-    if 5 <= now.hour < 12:
-        return "morning"
-    elif 12 <= now.hour < 18:
-        return "afternoon"
-    else:
-        return "evening"
-
-
-def is_working_day():
-    """Check if today is a working day (Monday to Friday)."""
-    today = datetime.date.today().weekday()
-    return today < 5  # True for weekdays (Monday to Friday)
