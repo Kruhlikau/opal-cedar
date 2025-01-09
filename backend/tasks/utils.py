@@ -43,7 +43,7 @@ def sync_entities_with_cedar(func):
         task_entities = [
             {
                 "uid": {"id": f"task_{task.id}", "type": "Task"},
-                "attrs": {"owner": task.owner.id},
+                "attrs": {"owner": task.owner.id, "access_level": task.access_level},
                 "parents": [],
             }
             for task in Task.objects.all()
